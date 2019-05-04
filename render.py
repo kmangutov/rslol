@@ -9,14 +9,11 @@ from Parser import parse
 
 from Rect import Rect
 
-root = Toplevel()
-
-
 index = 0
 if len(sys.argv) > 1:
 	index = sys.argv[1]
 
-def renderImage(photo, w, h):
+def renderImage(root, photo, w, h):
 	canvas = Canvas(root, width=w, height=h)
 	canvas.pack()
 	canvas.create_image(0, 0, anchor=NW, image = photo)
@@ -60,6 +57,9 @@ def loadBoxes(id):
 
 
 if __name__ == '__main__':
+
+	root = Toplevel()
+
 	photo = loadImage(14)
 	canvas = renderImage(photo, 800, 800)
 	boxes = loadBoxes(14)

@@ -9,7 +9,7 @@ from PIL import ImageFilter
 import numpy as np
 import keras
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout
+from keras.layers import Dense, Activation, Dropout, Conv2D, MaxPooling2D, Flatten
 from keras.optimizers import SGD
 from keras.models import load_model
 
@@ -71,13 +71,27 @@ im, bounds = sample()
 
 def pixelsToArray(im):
 	pixels = np.asarray(im)
-	flat = []
+	r = []
+	g = []
+	b = []
 	for i in range(0, len(pixels)):
 		for j in range(0, len(pixels[i])):
-			flat.append(pixels[i][j][0])
-			flat.append(pixels[i][j][1])
-			flat.append(pixels[i][j][2])
-	return flat
+			r.append(pixels[i][j][0])
+			g.append(pixels[i][j][1])
+			b.append(pixels[i][j][2])
+	return r + g + b
+
+def pixelsToWHD(im):
+	pixels = np.asarray(im)
+	arr = []
+	for i in range(0, len(pixels)):
+		h = []
+		for j in range(0, len(pixels[i])):
+			d = pixels[i][j][0:3]
+			h.append(d)
+		arr.append(h)
+	return arr
+
 
 def createMask(bounds):
 	arr = []
@@ -115,17 +129,32 @@ if False:
 INPUT_SIZE = WINDOW_SIZE * WINDOW_SIZE * 3
 
 model = Sequential()
-model.add(Dense(32, input_dim=INPUT_SIZE))
-model.add(Activation('relu'))
-model.add(Dense(WINDOW_SIZE * WINDOW_SIZE, activation='sigmoid'))
+#model.add(Dense(32, input_dim=INPUT_SIZE))
+#model.add(Activation('relu'))
+#model.add(Dense(32))
+#model.add(Activation('relu'))
+#model.add(Dense(WINDOW_SIZE * WINDOW_SIZE))
+#model.add(Activation('sigmoid'))
+
+model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(WINDOW_SIZE, WINDOW_SIZE, 3)))
+model.add(Conv2D(32, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(32, (3, 3), activation='relu'))
+model.add(Conv2D(32, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Activation('sigmoid'))
+
 model.compile(loss='mse',
               optimizer='adam',
               metrics=['accuracy'])
 
-for i in range(0, 1000):
+for i in range(0, 100):
 	im, bounds = sample()
 
-	_input = np.asarray(pixelsToArray(im)).reshape(1,49152)
+	#_input = np.asarray(pixelsToArray(im)).reshape(1,49152)
+	_input = np.asarray(pixelsToWHD(im))
 	_output = np.asarray(createMask(bounds)).reshape(1,16384)
 
 	print(str(len(_input)))

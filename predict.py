@@ -33,10 +33,13 @@ print('ywindows ' + str(Y_WINDOWS))
 print('slices per window ' + str(SLICES_PER_WINDOW))
 
 # pull random image slice and corresponding bounding box from images
+ii = 0
 def sample():
 	#choose slice
+	global ii
+	index = ii#random.randint(0, int(23 * SLICES_PER_WINDOW))
+	ii = ii + 1
 
-	index = random.randint(0, int(23 * SLICES_PER_WINDOW))
 	imageIndex = int(index / SLICES_PER_WINDOW)
 	sliceIndex = index % SLICES_PER_WINDOW
 	sliceX = int(sliceIndex % X_WINDOWS)
@@ -74,18 +77,18 @@ def sample():
 
 
 
-root = Toplevel()
-im, bounds = sample()
-
 def pixelsToArray(im):
 	pixels = np.asarray(im)
-	flat = []
+	r = []
+	g = []
+	b = []
 	for i in range(0, len(pixels)):
 		for j in range(0, len(pixels[i])):
-			flat.append(pixels[i][j][0])
-			flat.append(pixels[i][j][1])
-			flat.append(pixels[i][j][2])
-	return flat
+			r.append(pixels[i][j][0])
+			g.append(pixels[i][j][1])
+			b.append(pixels[i][j][2])
+	return r + g + b
+
 
 def createMask(bounds):
 	arr = []
@@ -108,7 +111,39 @@ def createMask(bounds):
 model = load_model('checkpoints/model.h5')
 
 root = Toplevel()
-im, bounds = sample()
+canvas = Canvas(root, width=WINDOW_SIZE * 3, height=WINDOW_SIZE * 6)
+canvas.pack()
+images = []
 
-prediction = model.predict(np.asarray(pixelsToArray(im)).reshape(1,49152))
-print(str(prediction))
+for k in range(0, 6):
+	im, bounds = sample()
+
+	prediction = model.predict(np.asarray(pixelsToArray(im)).reshape(1,49152))
+	print(str(prediction))
+
+	image = ImageTk.PhotoImage(im)
+	images.append(image)
+	canvas.create_image(0, k * WINDOW_SIZE, anchor=NW, image = image)
+
+	for i in range(0, len(prediction[0])):
+		x = WINDOW_SIZE + int(i / WINDOW_SIZE)
+		y = i % WINDOW_SIZE + k * WINDOW_SIZE
+		val = int(9 * float(prediction[0][i]))
+		color = '#' + str(val) + str(val) + str(val)
+		canvas.create_rectangle(x, y, x, y, width=0, fill=color)
+
+	mask = createMask(bounds)
+
+	for i in range(0, len(mask)):
+		x = WINDOW_SIZE * 2 + int(i / WINDOW_SIZE)
+		y = i % WINDOW_SIZE + k * WINDOW_SIZE
+		val = int(mask[i])
+		if val == 0:
+			color = '#000'
+		else:
+			color = '#fff'
+		canvas.create_rectangle(x, y, x, y, width=0, fill=color)
+
+
+
+root.mainloop()
