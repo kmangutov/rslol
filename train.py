@@ -9,13 +9,13 @@ from PIL import ImageFilter
 import numpy as np
 import keras
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Conv2D, MaxPooling2D, Flatten
+from keras.layers import UpSampling2D, Dense,UpSampling2D, Activation, Dropout, Conv2D, MaxPooling2D, Flatten, BatchNormalization
 from keras.optimizers import SGD
 from keras.models import load_model
 
 
 w, h = imageSize()
-WINDOW_SIZE = 128
+WINDOW_SIZE = 64
 X_WINDOWS = int(w / WINDOW_SIZE)
 Y_WINDOWS = int(h / WINDOW_SIZE)
 SLICES_PER_WINDOW = X_WINDOWS * Y_WINDOWS
@@ -111,6 +111,7 @@ def createMask(bounds):
 	return arr
 
 
+
 flat = pixelsToArray(im)
 
 print(str(flat))
@@ -129,37 +130,47 @@ if False:
 INPUT_SIZE = WINDOW_SIZE * WINDOW_SIZE * 3
 
 model = Sequential()
-#model.add(Dense(32, input_dim=INPUT_SIZE))
+#model.add(Dense(128, input_dim=INPUT_SIZE, kernel_initializer='glorot_normal'))
 #model.add(Activation('relu'))
-#model.add(Dense(32))
+#model.add(Dense(64, kernel_initializer='glorot_normal'))
 #model.add(Activation('relu'))
-#model.add(Dense(WINDOW_SIZE * WINDOW_SIZE))
-#model.add(Activation('sigmoid'))
 
-model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(WINDOW_SIZE, WINDOW_SIZE, 3)))
-model.add(Conv2D(32, (3, 3), activation='relu'))
+model.add(Conv2D(64, (6, 6), activation='relu', input_shape=(WINDOW_SIZE, WINDOW_SIZE, 3)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(128, (2, 2), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
-model.add(Conv2D(32, (3, 3), activation='relu'))
-model.add(Conv2D(32, (3, 3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-
+model.add(UpSampling2D(pool_size=(2, 2)))
+model.add(Conv2DTranspose(128, (2, 2)))
+model.add(UpSampling2D(pool_size=(2, 2)))
+model.add(Conv2DTranspose(64, (6, 6)))
 model.add(Activation('sigmoid'))
+#model.add(Flatten())
+#model.add(Dense(1, activation='sigmoid'))
 
-model.compile(loss='mse',
+#model.add(MaxPooling2D(pool_size=(2, 2)))
+#model.add(UpSampling2D())
+#model.add(Flatten())
+#model.add(Conv2D(32, (3, 3), activation='relu'))
+#model.add(Conv2D(32, (3, 3), activation='relu'))
+#model.add(MaxPooling2D(pool_size=(2, 2)))
+
+
+model.compile(loss='binary_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-for i in range(0, 100):
+for i in range(0, 300):
 	im, bounds = sample()
 
-	#_input = np.asarray(pixelsToArray(im)).reshape(1,49152)
-	_input = np.asarray(pixelsToWHD(im))
-	_output = np.asarray(createMask(bounds)).reshape(1,16384)
+	#_input = np.asarray(pixelsToArray(im)).reshape(1,INPUT_SIZE)
+	_input = np.asarray([pixelsToWHD(im)])
+	#_output = np.asarray(createMask(bounds)).reshape(1,WINDOW_SIZE * WINDOW_SIZE)
+	_output = np.asarray([max(0, min(1, len(bounds)))])
 
 	print(str(len(_input)))
 	print(_input.shape)
-	print(_output.shape)
+	print(', output: ' + str(_output))
 
 	model.fit(_input, _output, batch_size=1, verbose=1, shuffle=False)
 	model.save('checkpoints/model.h5')
