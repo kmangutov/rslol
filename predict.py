@@ -124,6 +124,9 @@ model = load_model('checkpoints/model.h5')
 
 images = []
 
+def toHex(r, g, b):
+	return "#%02x%02x%02x" % (r, g, b)
+
 for s in range(0, 5):
 
 	root = Toplevel()
@@ -145,8 +148,8 @@ for s in range(0, 5):
 		images.append(image)
 		canvas.create_image(0, k * WINDOW_SIZE, anchor=NW, image = image)
 
-		val = int(9 * prediction[0][0])
-		color = '#' + str(val) + str(val) + str(val)
+		val = prediction[0][0]
+		color = toHex(int(val * 255), int(val * 255), int(val * 255))#'#' + str(val) + str(val) + str(val)
 		canvas.create_rectangle(WINDOW_SIZE, k * WINDOW_SIZE, WINDOW_SIZE + WINDOW_SIZE, k * WINDOW_SIZE + WINDOW_SIZE, width=0, fill=color)
 		#for i in range(0, len(prediction[0])):
 	#		x = WINDOW_SIZE + int(i / WINDOW_SIZE)

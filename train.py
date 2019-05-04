@@ -162,28 +162,23 @@ model.compile(loss='binary_crossentropy',
               optimizer='adam')
 
 for i in range(0, 50):
-	im, bounds = sample()
 
-	#_input = np.asarray(pixelsToArray(im)).reshape(1,INPUT_SIZE)
-	_input = np.asarray([pixelsToWHD(im)])
-	#_output = np.asarray(createMask(bounds)).reshape(1,WINDOW_SIZE * WINDOW_SIZE)
-	#_output = np.asarray([max(0, min(1, len(bounds)))])
+	_inputs = []
+	_outputs = []
 
-	overlaparea = 0
-	for b in range(0, len(bounds)):
-		print('bound b : ' + str(bounds[b]))
-		cut = Rect(max(bounds[b].x1, 0), max(bounds[b].y1, 0), min(bounds[b].x2, WINDOW_SIZE), min(bounds[b].y2, WINDOW_SIZE))
-		overlap = cut.area() /  (WINDOW_SIZE * WINDOW_SIZE)
-		overlaparea += overlap
-		#overlaparea += bounds[b].overlap(Rect(0, 0, WINDOW_SIZE, WINDOW_SIZE))
-		print('new overlap: ' + str(overlaparea))
-	_output = np.asarray([overlaparea])
+	for j in range(0, 10):
+		im, bounds = sample()
+		_inputs.append(pixelsToWHD(im))
 
-	print(str(len(_input)))
-	print(_input.shape)
-	print(', output: ' + str(_output))
+		overlaparea = 0
+		for b in range(0, len(bounds)):
+			cut = Rect(max(bounds[b].x1, 0), max(bounds[b].y1, 0), min(bounds[b].x2, WINDOW_SIZE), min(bounds[b].y2, WINDOW_SIZE))
+			overlap = cut.area() /  (WINDOW_SIZE * WINDOW_SIZE)
+			overlaparea += overlap
+		_output = overlaparea
+		_outputs.append(_output)
 
-	model.fit(_input, _output, batch_size=1, verbose=1, shuffle=False)
+	model.fit(np.asarray(_inputs), np.asarray(_outputs), verbose=1, shuffle=False)
 	model.save('checkpoints/model.h5')
 
 #GOD BOUNDS (after scale) [41, 26, 858, 455],
