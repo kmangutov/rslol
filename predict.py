@@ -33,7 +33,7 @@ print('ywindows ' + str(Y_WINDOWS))
 print('slices per window ' + str(SLICES_PER_WINDOW))
 
 # pull random image slice and corresponding bounding box from images
-ii = 56
+ii = 0
 def sample():
 	#choose slice
 	global ii
