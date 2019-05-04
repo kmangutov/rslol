@@ -9,7 +9,7 @@ from PIL import ImageFilter
 import numpy as np
 import keras
 from keras.models import Sequential
-from keras.layers import UpSampling2D, Dense,UpSampling2D, Activation, Dropout, Conv2D, MaxPooling2D, Flatten, BatchNormalization
+from keras.layers import UpSampling2D, Dense,UpSampling2D, Activation, Dropout, Conv2D, MaxPooling2D, Flatten, BatchNormalization, Conv2DTranspose
 from keras.optimizers import SGD
 from keras.models import load_model
 
@@ -88,6 +88,7 @@ def pixelsToWHD(im):
 		h = []
 		for j in range(0, len(pixels[i])):
 			d = pixels[i][j][0:3]
+			#d = [pixels[i][j][1]]
 			h.append(d)
 		arr.append(h)
 	return arr
@@ -135,18 +136,17 @@ model = Sequential()
 #model.add(Dense(64, kernel_initializer='glorot_normal'))
 #model.add(Activation('relu'))
 
-model.add(Conv2D(64, (6, 6), activation='relu', input_shape=(WINDOW_SIZE, WINDOW_SIZE, 3)))
+model.add(Conv2D(64, (2, 2), activation='relu', input_shape=(WINDOW_SIZE, WINDOW_SIZE, 3)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(128, (2, 2), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
+#model.add(Conv2D(64, (2, 2), activation='relu'))
+#model.add(MaxPooling2D(pool_size=(2, 2)))
 
-model.add(UpSampling2D(pool_size=(2, 2)))
-model.add(Conv2DTranspose(128, (2, 2)))
-model.add(UpSampling2D(pool_size=(2, 2)))
-model.add(Conv2DTranspose(64, (6, 6)))
-model.add(Activation('sigmoid'))
-#model.add(Flatten())
-#model.add(Dense(1, activation='sigmoid'))
+#model.add(UpSampling2D(size=(2, 2)))
+#model.add(Conv2DTranspose(128, (2, 2)))
+model.add(Flatten())
+model.add(Dense(16, activation='relu'))
+#model.add(Dense(32, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
 
 #model.add(MaxPooling2D(pool_size=(2, 2)))
 #model.add(UpSampling2D())
@@ -157,16 +157,25 @@ model.add(Activation('sigmoid'))
 
 
 model.compile(loss='binary_crossentropy',
-              optimizer='adam',
-              metrics=['accuracy'])
+              optimizer='adam')
 
-for i in range(0, 300):
+for i in range(0, 100):
 	im, bounds = sample()
 
 	#_input = np.asarray(pixelsToArray(im)).reshape(1,INPUT_SIZE)
 	_input = np.asarray([pixelsToWHD(im)])
 	#_output = np.asarray(createMask(bounds)).reshape(1,WINDOW_SIZE * WINDOW_SIZE)
-	_output = np.asarray([max(0, min(1, len(bounds)))])
+	#_output = np.asarray([max(0, min(1, len(bounds)))])
+
+	overlaparea = 0
+	for b in range(0, len(bounds)):
+		print('bound b : ' + str(bounds[b]))
+		cut = Rect(max(bounds[b].x1, 0), max(bounds[b].y1, 0), min(bounds[b].x2, WINDOW_SIZE), min(bounds[b].y2, WINDOW_SIZE))
+		overlap = cut.area() /  (WINDOW_SIZE * WINDOW_SIZE)
+		overlaparea += overlap
+		#overlaparea += bounds[b].overlap(Rect(0, 0, WINDOW_SIZE, WINDOW_SIZE))
+		print('new overlap: ' + str(overlaparea))
+	_output = np.asarray([overlaparea])
 
 	print(str(len(_input)))
 	print(_input.shape)

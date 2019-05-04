@@ -96,6 +96,7 @@ def pixelsToWHD(im):
 		h = []
 		for j in range(0, len(pixels[i])):
 			d = pixels[i][j][0:3]
+			#d = [pixels[i][j][1]]
 			h.append(d)
 		arr.append(h)
 	return arr
@@ -132,7 +133,12 @@ for s in range(0, 5):
 	for k in range(0, 12):
 		im, bounds = sample()
 
-		prediction = model.predict(np.asarray([pixelsToWHD(im)]))#.reshape(1,WINDOW_SIZE * WINDOW_SIZE * 3))
+		inp = np.asarray([pixelsToWHD(im)])
+		print('input: ' + str(inp))
+
+		prediction = model.predict(inp)#.reshape(1,WINDOW_SIZE * WINDOW_SIZE * 3))
+		#prediction = model.predict(np.asarray([pixelsToArray(im)]))#.reshape(1,WINDOW_SIZE * WINDOW_SIZE * 3))
+		
 		print(str(prediction))
 
 		image = ImageTk.PhotoImage(im)

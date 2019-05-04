@@ -17,11 +17,22 @@ class Rect:
 		self.x2 += x
 		self.y2 += y
 
+	def area(self):
+		return self.w * self.h
+
 	def bound(self, x1, y1, x2, y2):
 		self.x1 = max(self.x1, x1)
 		self.y1 = max(self.y1, y1)
 		self.x2 = max(self.x2, x2)
 		self.y2 = max(self.y2, y2)
+
+	def overlap(self, other):
+		dx = min(self.x2, other.x2) - max(self.x1, other.x1)
+		dy = min(self.y2, other.y2) - max(self.y1, other.y2)
+		print('dy: ' + str(dy) + ', dx: ' + str(dx))
+		if (dx >= 0) and (dy >= 0):
+			return dx * dy
+		return 0
 
 	def intersects(self, other):
 		if self.y2 < other.y1 or self.x2 < other.x1:
