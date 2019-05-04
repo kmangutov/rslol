@@ -135,8 +135,9 @@ model = Sequential()
 #model.add(Activation('relu'))
 #model.add(Dense(64, kernel_initializer='glorot_normal'))
 #model.add(Activation('relu'))
-
-model.add(Conv2D(64, (2, 2), activation='relu', input_shape=(WINDOW_SIZE, WINDOW_SIZE, 3)))
+model.add(Conv2D(16, (4, 4), activation='relu', input_shape=(WINDOW_SIZE, WINDOW_SIZE, 3)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(8, (2, 2), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 #model.add(Conv2D(64, (2, 2), activation='relu'))
 #model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -144,6 +145,7 @@ model.add(MaxPooling2D(pool_size=(2, 2)))
 #model.add(UpSampling2D(size=(2, 2)))
 #model.add(Conv2DTranspose(128, (2, 2)))
 model.add(Flatten())
+model.add(Dense(16, activation='relu'))
 model.add(Dense(16, activation='relu'))
 #model.add(Dense(32, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
@@ -159,7 +161,7 @@ model.add(Dense(1, activation='sigmoid'))
 model.compile(loss='binary_crossentropy',
               optimizer='adam')
 
-for i in range(0, 100):
+for i in range(0, 300):
 	im, bounds = sample()
 
 	#_input = np.asarray(pixelsToArray(im)).reshape(1,INPUT_SIZE)

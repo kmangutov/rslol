@@ -134,7 +134,7 @@ for s in range(0, 5):
 		im, bounds = sample()
 
 		inp = np.asarray([pixelsToWHD(im)])
-		print('input: ' + str(inp))
+		#print('input: ' + str(inp))
 
 		prediction = model.predict(inp)#.reshape(1,WINDOW_SIZE * WINDOW_SIZE * 3))
 		#prediction = model.predict(np.asarray([pixelsToArray(im)]))#.reshape(1,WINDOW_SIZE * WINDOW_SIZE * 3))
